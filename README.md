@@ -1,36 +1,87 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Cerca 💜
 
-## Getting Started
+Una pequeña app para dos, hecha para la distancia. Cuenta regresiva hasta el
+reencuentro, diario compartido, una pregunta nueva cada día y notificaciones
+push — solo para nosotros dos.
 
-First, run the development server:
+## Stack
+
+- **Next.js 14** (App Router)
+- **Supabase** — Auth (magic link), Postgres, Realtime, Edge Functions
+- **Tailwind CSS**
+- **Framer Motion** — animaciones
+- **lucide-react** — íconos
+- **web-push** — notificaciones
+
+## Puesta en marcha
+
+### 1. Instalar dependencias
+
+```bash
+npm install
+```
+
+### 2. Variables de entorno
+
+Copia `.env.example` a `.env.local` y rellena los valores:
+
+```bash
+cp .env.example .env.local
+```
+
+| Variable | De dónde sale |
+| --- | --- |
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase → Project Settings → API |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase → Project Settings → API |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase → Project Settings → API (secreto) |
+| `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | `npx web-push generate-vapid-keys` |
+| `VAPID_PRIVATE_KEY` | `npx web-push generate-vapid-keys` |
+
+### 3. Configurar los dos correos
+
+Edita `lib/constants.ts` y reemplaza `EMAIL_1_HERE` / `EMAIL_2_HERE` por los
+dos correos reales. Solo esos dos pueden pedir un enlace mágico.
+
+También puedes ajustar `REUNION_DATE` (la fecha del reencuentro).
+
+### 4. Crear la base de datos
+
+Abre el **SQL editor** de Supabase y ejecuta el contenido de
+[`supabase/schema.sql`](supabase/schema.sql).
+
+### 5. Correr en local
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Abre [http://localhost:3000](http://localhost:3000) — deberías ver la pantalla
+de login.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Notificaciones push (opcional)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. Genera las llaves VAPID: `npx web-push generate-vapid-keys`
+2. Ponlas en `.env.local` (pública + privada).
+3. Despliega la edge function y crea los webhooks siguiendo las instrucciones
+   al inicio de [`supabase/functions/send-push/index.ts`](supabase/functions/send-push/index.ts).
+4. En la app, ve a **Perfil → Activar notificaciones**.
 
-## Learn More
+## Estructura
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```
+app/
+  layout.tsx              · layout raíz, fuentes, orbes flotantes, nav
+  page.tsx                · inicio: cuenta regresiva + estado de pareja
+  diario/page.tsx         · diario compartido
+  preguntas/page.tsx      · juego de preguntas
+  perfil/page.tsx         · perfil + notificaciones + cerrar sesión
+  auth/page.tsx           · login con enlace mágico
+  auth/callback/route.ts  · callback de Supabase Auth
+components/               · Countdown, PartnerStatus, JournalFeed, QuestionCard…
+lib/                      · constants, clientes Supabase, utils
+public/sw.js              · service worker para push
+supabase/
+  schema.sql              · esquema de la base de datos
+  functions/send-push/    · edge function de notificaciones
+middleware.ts             · refresco de sesión + protección de rutas
+```
