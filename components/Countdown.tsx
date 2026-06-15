@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { REUNION_DATE, REUNION_LABEL } from '@/lib/constants'
 
 type Remaining = {
@@ -34,37 +34,38 @@ function pad(n: number) {
 function Unit({
   value,
   label,
-  pop = false,
+  animate = false,
 }: {
   value: string
   label: string
-  pop?: boolean
+  animate?: boolean
 }) {
-  const number = (
-    <span
-      className="font-display leading-none"
-      style={{ fontSize: 40, fontWeight: 500, color: '#5a47b0' }}
-    >
-      {value}
-    </span>
-  )
-
   return (
-    <div className="glass flex flex-col items-center justify-center gap-1 py-4">
-      {pop ? (
-        <motion.div
+    <div
+      className="flex flex-1 flex-col items-center justify-center gap-2 rounded-2xl py-5"
+      style={{
+        background: 'rgba(255,255,255,0.22)',
+        backdropFilter: 'blur(18px)',
+        WebkitBackdropFilter: 'blur(18px)',
+        border: '1px solid rgba(255,255,255,0.45)',
+        boxShadow: '0 4px 24px rgba(90,71,176,0.10)',
+      }}
+    >
+      <AnimatePresence mode="popLayout">
+        <motion.span
           key={value}
-          initial={{ scale: 1.05 }}
-          animate={{ scale: 1 }}
-          transition={{ duration: 0.3, ease: 'easeOut' }}
+          initial={animate ? { y: -8, opacity: 0 } : false}
+          animate={{ y: 0, opacity: 1 }}
+          exit={animate ? { y: 8, opacity: 0 } : undefined}
+          transition={{ duration: 0.25, ease: 'easeOut' }}
+          className="font-display leading-none tabular-nums"
+          style={{ fontSize: 36, fontWeight: 600, color: '#5a47b0' }}
         >
-          {number}
-        </motion.div>
-      ) : (
-        number
-      )}
+          {value}
+        </motion.span>
+      </AnimatePresence>
       <span
-        className="text-[11px] uppercase tracking-[0.15em]"
+        className="text-[10px] uppercase tracking-[0.18em]"
         style={{ color: '#9888d0' }}
       >
         {label}
@@ -82,20 +83,24 @@ export default function Countdown() {
     return () => clearInterval(id)
   }, [])
 
-  if (!time) {
-    // Avoid hydration mismatch — render placeholders until mounted.
-    return (
-      <div className="grid grid-cols-2 gap-3">
-        {['Días', 'Horas', 'Min', 'Seg'].map((l) => (
-          <Unit key={l} value="--" label={l} />
-        ))}
-      </div>
-    )
-  }
+  const units = [
+    { label: 'Días',  value: time ? pad(time.days)    : '--' },
+    { label: 'Horas', value: time ? pad(time.hours)   : '--' },
+    { label: 'Min',   value: time ? pad(time.minutes) : '--' },
+    { label: 'Seg',   value: time ? pad(time.seconds) : '--', animate: true },
+  ]
 
-  if (time.done) {
+  if (time?.done) {
     return (
-      <div className="glass-strong flex flex-col items-center gap-2 px-6 py-8 text-center">
+      <div
+        className="flex flex-col items-center gap-2 rounded-2xl px-6 py-8 text-center"
+        style={{
+          background: 'rgba(255,255,255,0.28)',
+          backdropFilter: 'blur(18px)',
+          WebkitBackdropFilter: 'blur(18px)',
+          border: '1px solid rgba(255,255,255,0.5)',
+        }}
+      >
         <span className="font-display text-3xl" style={{ color: '#5a47b0' }}>
           Por fin juntos 💜
         </span>
@@ -108,13 +113,12 @@ export default function Countdown() {
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="grid grid-cols-2 gap-3">
-        <Unit value={pad(time.days)} label="Días" />
-        <Unit value={pad(time.hours)} label="Horas" />
-        <Unit value={pad(time.minutes)} label="Min" />
-        <Unit value={pad(time.seconds)} label="Seg" pop />
+      <div className="flex gap-2">
+        {units.map(({ label, value, animate }) => (
+          <Unit key={label} label={label} value={value} animate={animate} />
+        ))}
       </div>
-      <p className="text-center text-sm" style={{ color: '#8878c4' }}>
+      <p className="text-center text-xs" style={{ color: '#9888d0', letterSpacing: '0.05em' }}>
         {REUNION_LABEL}
       </p>
     </div>

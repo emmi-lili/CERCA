@@ -2,12 +2,12 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Home, BookOpen, HelpCircle, User } from 'lucide-react'
+import { Home, BookOpen, Gamepad2, User } from 'lucide-react'
 
 const TABS = [
   { href: '/', label: 'Inicio', Icon: Home },
   { href: '/diario', label: 'Diario', Icon: BookOpen },
-  { href: '/preguntas', label: 'Preguntas', Icon: HelpCircle },
+  { href: '/juegos', label: 'Juegos', Icon: Gamepad2 },
   { href: '/perfil', label: 'Perfil', Icon: User },
 ] as const
 

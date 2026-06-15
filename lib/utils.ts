@@ -1,4 +1,4 @@
-import { APP_START_DATE, QUESTIONS } from './constants'
+import { APP_START_DATE, QUESTIONS_CONOCERNOS } from './constants'
 
 // Returns a short Spanish relative-time string ("hace 5 min", "ayer", ...).
 export function formatRelativeTime(date: string | Date): string {
@@ -33,12 +33,15 @@ function daysBetween(start: Date, end: Date): number {
 
 // One question unlocks per day since the app first started being used.
 // `startDate` is the created_at of the earliest journal entry, falling back to
-// APP_START_DATE. The result is clamped to the available questions.
-export function getTodayQuestionIndex(startDate?: string | Date | null): number {
+// APP_START_DATE. Pass `maxLength` to clamp against a specific question list.
+export function getTodayQuestionIndex(
+  startDate?: string | Date | null,
+  maxLength: number = QUESTIONS_CONOCERNOS.length,
+): number {
   const start = startDate ? new Date(startDate) : APP_START_DATE
   const elapsed = daysBetween(start, new Date())
   const index = Math.max(0, elapsed)
-  return Math.min(index, QUESTIONS.length - 1)
+  return Math.min(index, maxLength - 1)
 }
 
 // True when a "last seen" timestamp is within the last 5 minutes.

@@ -1,10 +1,10 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
-import { motion } from 'framer-motion'
-import { ChevronLeft, ChevronRight, RotateCw } from 'lucide-react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { ChevronLeft, ChevronRight, Send } from 'lucide-react'
 import { createClient } from '@/lib/supabase'
-import { COUPLE_ID, QUESTIONS } from '@/lib/constants'
+import { COUPLE_ID } from '@/lib/constants'
 
 export type Answer = {
   id: string
@@ -19,6 +19,8 @@ type Props = {
   partnerName: string
   todayIndex: number
   initialAnswers: Answer[]
+  questions: string[]
+  indexOffset?: number
 }
 
 export default function QuestionCard({
@@ -26,17 +28,20 @@ export default function QuestionCard({
   partnerName,
   todayIndex,
   initialAnswers,
+  questions,
+  indexOffset = 0,
 }: Props) {
-  const supabase = useMemo(() => createClient(), [])
+  const supabase      = useMemo(() => createClient(), [])
   const [answers, setAnswers] = useState<Answer[]>(initialAnswers)
   const [viewIndex, setViewIndex] = useState(todayIndex)
-  const [flipped, setFlipped] = useState(false)
-  const [draft, setDraft] = useState('')
-  const [saving, setSaving] = useState(false)
+  const [draft, setDraft]     = useState('')
+  const [saving, setSaving]   = useState(false)
+  const [sendError, setSendError] = useState('')
+  const bottomRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const channel = supabase
-      .channel('question-games')
+      .channel(`question-games-${indexOffset}`)
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'question_games' },
@@ -48,48 +53,80 @@ export default function QuestionCard({
         }
       )
       .subscribe()
-    return () => {
-      supabase.removeChannel(channel)
-    }
-  }, [supabase])
+    return () => { supabase.removeChannel(channel) }
+  }, [supabase, indexOffset])
 
-  // Reset flip + draft whenever the viewed question changes.
+  // Reset draft and error when navigating between questions.
+  useEffect(() => { setDraft(''); setSendError('') }, [viewIndex])
+
+  // Scroll to bottom when partner's answer arrives.
   useEffect(() => {
-    setFlipped(false)
-    setDraft('')
-  }, [viewIndex])
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [answers])
 
-  const forIndex = answers.filter((a) => a.question_index === viewIndex)
-  const myAnswer = forIndex.find((a) => a.author_id === currentUserId)
+  const isToday       = viewIndex === todayIndex
+  const dbIndex       = viewIndex + indexOffset
+  const forIndex      = answers.filter((a) => a.question_index === dbIndex)
+  const myAnswer      = forIndex.find((a) => a.author_id === currentUserId)
   const partnerAnswer = forIndex.find((a) => a.author_id !== currentUserId)
-  const bothAnswered = Boolean(myAnswer && partnerAnswer)
+
+  // If both answered, sort by created_at so the first reply shows first.
+  const chatMessages = [myAnswer, partnerAnswer]
+    .filter(Boolean)
+    .sort((a, b) =>
+      new Date(a!.created_at).getTime() - new Date(b!.created_at).getTime()
+    ) as Answer[]
 
   const handleSend = async () => {
     const answer = draft.trim()
     if (!answer || saving || myAnswer) return
     setSaving(true)
+    setSendError('')
+
     const { data, error } = await supabase
       .from('question_games')
       .insert({
         couple_id: COUPLE_ID,
-        question_index: viewIndex,
+        question_index: dbIndex,
         author_id: currentUserId,
         answer,
       })
       .select()
       .single()
+
     setSaving(false)
-    if (!error && data) {
-      setDraft('')
-      setAnswers((prev) =>
-        prev.some((x) => x.id === data.id) ? prev : [...prev, data as Answer]
-      )
+
+    if (error) {
+      console.error('insert error:', error)
+      setSendError(error.message)
+      return
+    }
+
+    setDraft('')
+
+    // Use returned data if available; otherwise build an optimistic entry.
+    const saved: Answer = data ?? {
+      id: crypto.randomUUID(),
+      question_index: dbIndex,
+      author_id: currentUserId,
+      answer,
+      created_at: new Date().toISOString(),
+    }
+    setAnswers((prev) =>
+      prev.some((x) => x.id === saved.id) ? prev : [...prev, saved]
+    )
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      handleSend()
     }
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      {/* Day navigation */}
+    <div className="flex flex-col gap-3">
+      {/* Question navigation */}
       <div className="flex items-center justify-between">
         <button
           onClick={() => setViewIndex((i) => Math.max(0, i - 1))}
@@ -99,10 +136,7 @@ export default function QuestionCard({
         >
           <ChevronLeft size={20} color="#5a47b0" />
         </button>
-        <span
-          className="text-xs uppercase tracking-[0.2em]"
-          style={{ color: '#9888d0' }}
-        >
+        <span className="text-xs uppercase tracking-[0.2em]" style={{ color: '#9888d0' }}>
           Pregunta {viewIndex + 1}
         </span>
         <button
@@ -115,135 +149,114 @@ export default function QuestionCard({
         </button>
       </div>
 
-      {/* Flip card */}
-      <div style={{ perspective: 1200 }}>
-        <motion.div
-          className="relative w-full"
-          style={{ transformStyle: 'preserve-3d', minHeight: 280 }}
-          animate={{ rotateY: flipped ? 180 : 0 }}
-          transition={{ duration: 0.7, ease: 'easeInOut' }}
-        >
-          {/* FRONT — question + my answer */}
-          <div
-            className="glass-strong flex flex-col gap-4 p-6"
-            style={{
-              backfaceVisibility: 'hidden',
-              WebkitBackfaceVisibility: 'hidden',
-            }}
+      {/* Chat container */}
+      <div className="glass-strong flex flex-col gap-4 p-5">
+        {/* Question bubble — centered */}
+        <div className="flex justify-center">
+          <p
+            className="font-display text-center text-xl leading-snug"
+            style={{ color: '#5a47b0' }}
           >
-            <p
-              className="font-display text-2xl leading-snug"
-              style={{ color: '#3a2e6e' }}
-            >
-              {QUESTIONS[viewIndex]}
-            </p>
+            {questions[viewIndex]}
+          </p>
+        </div>
 
-            {myAnswer ? (
-              <div className="flex flex-col gap-3">
-                <div
-                  className="rounded-2xl px-4 py-3"
-                  style={{ background: 'rgba(160,140,230,0.12)' }}
+        <div className="h-px" style={{ background: 'rgba(160,140,230,0.2)' }} />
+
+        {/* Chat messages */}
+        <div className="flex flex-col gap-3">
+          <AnimatePresence initial={false}>
+            {chatMessages.map((msg) => {
+              const isMe = msg.author_id === currentUserId
+              return (
+                <motion.div
+                  key={msg.id}
+                  initial={{ opacity: 0, y: 8, scale: 0.97 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  transition={{ duration: 0.25, ease: 'easeOut' }}
+                  className={`flex flex-col gap-1 ${isMe ? 'items-end' : 'items-start'}`}
                 >
                   <span
-                    className="mb-1 block text-[11px] uppercase tracking-wide"
+                    className="text-[10px] uppercase tracking-wide px-1"
                     style={{ color: '#9888d0' }}
                   >
-                    Tu respuesta
+                    {isMe ? 'Tú' : partnerName}
                   </span>
-                  <p
-                    className="font-display text-lg"
-                    style={{ color: '#3a2e6e' }}
+                  <div
+                    className="max-w-[85%] rounded-3xl px-4 py-3"
+                    style={
+                      isMe
+                        ? { background: 'linear-gradient(135deg,#8878c4,#5a47b0)' }
+                        : { background: 'rgba(187,214,255,0.45)', border: '1px solid rgba(160,200,255,0.4)' }
+                    }
                   >
-                    {myAnswer.answer}
-                  </p>
-                </div>
+                    <p
+                      className="font-display text-base leading-snug"
+                      style={{ color: isMe ? '#fff' : '#3a2e6e' }}
+                    >
+                      {msg.answer}
+                    </p>
+                  </div>
+                </motion.div>
+              )
+            })}
+          </AnimatePresence>
 
-                {bothAnswered ? (
-                  <button
-                    onClick={() => setFlipped(true)}
-                    className="flex items-center justify-center gap-2 rounded-full px-6 py-2.5 text-sm font-medium text-white"
-                    style={{
-                      background: 'linear-gradient(135deg,#8878c4,#5a47b0)',
-                    }}
-                  >
-                    <RotateCw size={16} />
-                    Ver la respuesta de {partnerName}
-                  </button>
-                ) : (
-                  <p
-                    className="text-center text-sm italic"
-                    style={{ color: '#9888d0' }}
-                  >
-                    Esperando la respuesta de {partnerName}…
-                  </p>
-                )}
-              </div>
-            ) : (
-              <div className="flex flex-col gap-3">
-                <textarea
-                  value={draft}
-                  onChange={(e) => setDraft(e.target.value)}
-                  placeholder="Tu respuesta…"
-                  rows={3}
-                  className="w-full resize-none rounded-2xl bg-white/50 p-3 font-display text-lg"
-                  style={{ color: '#3a2e6e' }}
-                />
-                <button
-                  onClick={handleSend}
-                  disabled={saving || !draft.trim()}
-                  className="self-end rounded-full px-6 py-2 text-sm font-medium text-white transition-opacity disabled:opacity-40"
-                  style={{
-                    background: 'linear-gradient(135deg,#8878c4,#5a47b0)',
-                  }}
-                >
-                  {saving ? 'Enviando…' : 'Responder'}
-                </button>
-              </div>
+          {/* Waiting state */}
+          {myAnswer && !partnerAnswer && (
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-center text-sm italic"
+              style={{ color: '#b8aee0' }}
+            >
+              Esperando la respuesta de {partnerName}…
+            </motion.p>
+          )}
+
+          {/* Past question with no answers */}
+          {!myAnswer && !partnerAnswer && !isToday && (
+            <p className="text-center text-sm italic" style={{ color: '#b8aee0' }}>
+              Esta pregunta ya pasó sin respuesta 🌙
+            </p>
+          )}
+
+          <div ref={bottomRef} />
+        </div>
+
+        {/* Input — only for today's unanswered question */}
+        {isToday && !myAnswer && (
+          <div className="flex flex-col gap-1">
+            <div
+              className="flex items-end gap-2 rounded-2xl p-2"
+              style={{ background: 'rgba(255,255,255,0.5)', border: '1px solid rgba(180,160,240,0.25)' }}
+            >
+              <textarea
+                value={draft}
+                onChange={(e) => { setDraft(e.target.value); setSendError('') }}
+                onKeyDown={handleKeyDown}
+                placeholder="Tu respuesta…"
+                rows={2}
+                className="flex-1 resize-none bg-transparent px-2 py-1 font-display text-base"
+                style={{ color: '#3a2e6e' }}
+              />
+              <button
+                onClick={handleSend}
+                disabled={saving || !draft.trim()}
+                className="mb-0.5 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full text-white transition-opacity disabled:opacity-40"
+                style={{ background: 'linear-gradient(135deg,#8878c4,#5a47b0)' }}
+                aria-label="Enviar"
+              >
+                <Send size={16} />
+              </button>
+            </div>
+            {sendError && (
+              <p className="px-1 text-xs" style={{ color: '#c47878' }}>
+                Error: {sendError}
+              </p>
             )}
           </div>
-
-          {/* BACK — partner's answer */}
-          <div
-            className="glass-strong absolute inset-0 flex flex-col gap-4 p-6"
-            style={{
-              backfaceVisibility: 'hidden',
-              WebkitBackfaceVisibility: 'hidden',
-              transform: 'rotateY(180deg)',
-            }}
-          >
-            <p
-              className="font-display text-2xl leading-snug"
-              style={{ color: '#3a2e6e' }}
-            >
-              {QUESTIONS[viewIndex]}
-            </p>
-            <div
-              className="rounded-2xl px-4 py-3"
-              style={{ background: 'rgba(187,214,255,0.25)' }}
-            >
-              <span
-                className="mb-1 block text-[11px] uppercase tracking-wide"
-                style={{ color: '#9888d0' }}
-              >
-                {partnerName}
-              </span>
-              <p className="font-display text-lg" style={{ color: '#3a2e6e' }}>
-                {partnerAnswer?.answer}
-              </p>
-            </div>
-            <button
-              onClick={() => setFlipped(false)}
-              className="flex items-center justify-center gap-2 rounded-full px-6 py-2.5 text-sm font-medium"
-              style={{
-                background: 'rgba(160,140,230,0.15)',
-                color: '#5a47b0',
-              }}
-            >
-              <RotateCw size={16} />
-              Volver a la pregunta
-            </button>
-          </div>
-        </motion.div>
+        )}
       </div>
     </div>
   )

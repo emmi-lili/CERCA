@@ -1,3 +1,4 @@
+// @ts-nocheck — Deno edge function: Node.js types don't apply here.
 // =============================================================================
 // Cerca — send-push Edge Function (Deno)
 // =============================================================================
@@ -117,7 +118,7 @@ Deno.serve(async (req) => {
         ? `${authorName} escribió algo en el diario 💜`
         : `${authorName} respondió la pregunta de hoy ✨`
 
-    const url = payload.table === 'journal_entries' ? '/diario' : '/preguntas'
+    const url = payload.table === 'journal_entries' ? '/diario' : '/juegos'
 
     const notification = JSON.stringify({ title: 'Cerca', body, url })
 
