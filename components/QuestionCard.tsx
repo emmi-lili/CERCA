@@ -31,6 +31,14 @@ function bubbleColor(id: string): string {
   return `radial-gradient(ellipse at center, rgba(${rgb},0.85) 0%, rgba(${rgb},0.35) 45%, rgba(${rgb},0) 75%)`
 }
 
+// Tally-style slide+fade when moving between questions. Direction 1 = next
+// (new content rises from below), -1 = previous (drops from above).
+const slideVariants = {
+  enter: (dir: number) => ({ y: dir >= 0 ? 36 : -36, opacity: 0 }),
+  center: { y: 0, opacity: 1 },
+  exit: (dir: number) => ({ y: dir >= 0 ? -36 : 36, opacity: 0 }),
+}
+
 type Props = {
   currentUserId: string
   partnerName: string
@@ -51,10 +59,20 @@ export default function QuestionCard({
   const supabase      = useMemo(() => createClient(), [])
   const [answers, setAnswers] = useState<Answer[]>(initialAnswers)
   const [viewIndex, setViewIndex] = useState(todayIndex)
+  const [direction, setDirection] = useState(0)
   const [draft, setDraft]     = useState('')
   const [saving, setSaving]   = useState(false)
   const [sendError, setSendError] = useState('')
   const bottomRef = useRef<HTMLDivElement>(null)
+
+  const goPrev = () => {
+    setDirection(-1)
+    setViewIndex((i) => Math.max(0, i - 1))
+  }
+  const goNext = () => {
+    setDirection(1)
+    setViewIndex((i) => Math.min(todayIndex, i + 1))
+  }
 
   useEffect(() => {
     const channel = supabase
@@ -146,7 +164,7 @@ export default function QuestionCard({
       {/* Question navigation */}
       <div className="flex items-center justify-between">
         <button
-          onClick={() => setViewIndex((i) => Math.max(0, i - 1))}
+          onClick={goPrev}
           disabled={viewIndex <= 0}
           className="glass flex h-10 w-10 items-center justify-center rounded-full disabled:opacity-30"
           aria-label="Pregunta anterior"
@@ -167,7 +185,7 @@ export default function QuestionCard({
           )}
         </div>
         <button
-          onClick={() => setViewIndex((i) => Math.min(todayIndex, i + 1))}
+          onClick={goNext}
           disabled={viewIndex >= todayIndex}
           className="glass flex h-10 w-10 items-center justify-center rounded-full disabled:opacity-30"
           aria-label="Pregunta siguiente"
@@ -177,21 +195,32 @@ export default function QuestionCard({
       </div>
 
       {/* Chat container */}
-      <div className="glass-strong flex flex-col gap-4 p-5">
-        {/* Question bubble — centered */}
-        <div className="flex justify-center">
-          <p
-            className="font-display text-center text-xl leading-snug"
-            style={{ color: '#5a47b0' }}
+      <div className="glass-strong overflow-hidden p-5">
+        <AnimatePresence mode="wait" custom={direction}>
+          <motion.div
+            key={viewIndex}
+            custom={direction}
+            variants={slideVariants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            transition={{ duration: 0.28, ease: [0.4, 0, 0.2, 1] }}
+            className="flex flex-col gap-4"
           >
-            {questions[viewIndex]}
-          </p>
-        </div>
+            {/* Question bubble — centered */}
+            <div className="flex justify-center">
+              <p
+                className="font-display text-center text-xl leading-snug"
+                style={{ color: '#5a47b0' }}
+              >
+                {questions[viewIndex]}
+              </p>
+            </div>
 
-        <div className="h-px" style={{ background: 'rgba(160,140,230,0.2)' }} />
+            <div className="h-px" style={{ background: 'rgba(160,140,230,0.2)' }} />
 
-        {/* Chat messages */}
-        <div className="flex flex-col gap-3">
+            {/* Chat messages */}
+            <div className="flex flex-col gap-3">
           <AnimatePresence initial={false}>
             {chatMessages.map((msg) => {
               const isMe = msg.author_id === currentUserId
@@ -273,6 +302,8 @@ export default function QuestionCard({
             )}
           </div>
         )}
+          </motion.div>
+        </AnimatePresence>
       </div>
     </div>
   )

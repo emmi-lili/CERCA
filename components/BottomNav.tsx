@@ -2,12 +2,14 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Home, BookOpen, Gamepad2, User } from 'lucide-react'
+import { Home, BookOpen, Gamepad2, User, Target, CalendarHeart } from 'lucide-react'
 
 const TABS = [
   { href: '/', label: 'Inicio', Icon: Home },
   { href: '/diario', label: 'Diario', Icon: BookOpen },
   { href: '/juegos', label: 'Juegos', Icon: Gamepad2 },
+  { href: '/metas', label: 'Metas', Icon: Target },
+  { href: '/calendario', label: 'Calendario', Icon: CalendarHeart },
   { href: '/perfil', label: 'Perfil', Icon: User },
 ] as const
 
@@ -27,7 +29,7 @@ export default function BottomNav() {
         borderTop: '0.5px solid rgba(180,160,240,0.3)',
       }}
     >
-      <ul className="flex items-stretch justify-around px-2 pb-[max(env(safe-area-inset-bottom),10px)] pt-2">
+      <ul className="flex items-stretch justify-around px-1 pb-[max(env(safe-area-inset-bottom),10px)] pt-2">
         {TABS.map(({ href, label, Icon }) => {
           const active =
             href === '/' ? pathname === '/' : pathname.startsWith(href)
@@ -35,7 +37,7 @@ export default function BottomNav() {
             <li key={href} className="flex-1">
               <Link
                 href={href}
-                className="flex flex-col items-center gap-1 rounded-2xl px-2 py-1.5 transition-colors"
+                className="flex flex-col items-center gap-0.5 rounded-xl px-1 py-1.5 transition-colors"
                 style={
                   active
                     ? { background: 'rgba(160,140,230,0.15)' }
@@ -43,12 +45,12 @@ export default function BottomNav() {
                 }
               >
                 <Icon
-                  size={22}
+                  size={19}
                   strokeWidth={active ? 2.2 : 1.8}
                   color={active ? '#5a47b0' : '#9888d0'}
                 />
                 <span
-                  className="text-[11px] tracking-wide"
+                  className="text-[9px] tracking-wide"
                   style={{ color: active ? '#5a47b0' : '#9888d0' }}
                 >
                   {label}

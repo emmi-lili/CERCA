@@ -19,7 +19,7 @@ const dmSans = DM_Sans({
 
 export const metadata: Metadata = {
   title: 'Cerca',
-  description: 'solo para nosotros dos',
+  description: 'Un rinconcito solo para nosotros dos',
 }
 
 export const viewport: Viewport = {

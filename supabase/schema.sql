@@ -30,6 +30,16 @@ create table if not exists public.question_games (
   created_at timestamptz default now()
 );
 
+-- Detalles — quick affection gestures (abrazo, beso, otro) sent to the partner.
+create table if not exists public.details (
+  id uuid default gen_random_uuid() primary key,
+  couple_id text default 'cerca-main',
+  author_id uuid references public.profiles(id),
+  kind text not null,            -- 'abrazo' | 'beso' | 'otro'
+  message text,                  -- custom text, only for 'otro'
+  created_at timestamptz default now()
+);
+
 -- Auto-create a profile row whenever a new auth user is created (password
 -- sign-ups don't go through the magic-link callback, so we handle it here).
 create or replace function public.handle_new_user()
@@ -86,6 +96,12 @@ begin
 exception when duplicate_object then null;
 end $$;
 
+do $$
+begin
+  alter publication supabase_realtime add table details;
+exception when duplicate_object then null;
+end $$;
+
 -- -----------------------------------------------------------------------------
 -- Row Level Security
 -- -----------------------------------------------------------------------------
@@ -96,6 +112,10 @@ create policy "couple access" on journal_entries for all using (couple_id = 'cer
 alter table question_games enable row level security;
 drop policy if exists "couple access" on question_games;
 create policy "couple access" on question_games for all using (couple_id = 'cerca-main');
+
+alter table details enable row level security;
+drop policy if exists "couple access" on details;
+create policy "couple access" on details for all using (couple_id = 'cerca-main');
 
 alter table profiles enable row level security;
 drop policy if exists "profiles visible to couple" on profiles;

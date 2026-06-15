@@ -113,12 +113,30 @@ Deno.serve(async (req) => {
       return new Response('no subscriptions', { status: 200 })
     }
 
-    const body =
-      payload.table === 'journal_entries'
-        ? `${authorName} escribió algo en el diario 💜`
-        : `${authorName} respondió la pregunta de hoy ✨`
+    let body: string
+    let url: string
 
-    const url = payload.table === 'journal_entries' ? '/diario' : '/juegos'
+    if (payload.table === 'journal_entries') {
+      body = `${authorName} escribió algo en el diario 💜`
+      url = '/diario'
+    } else if (payload.table === 'question_games') {
+      body = `${authorName} respondió la pregunta de hoy ✨`
+      url = '/juegos'
+    } else if (payload.table === 'details') {
+      const kind = payload.record?.kind
+      const message = payload.record?.message
+      if (kind === 'abrazo') {
+        body = `${authorName} te mandó un abrazo 🤗`
+      } else if (kind === 'beso') {
+        body = `${authorName} te mandó un beso 😘`
+      } else {
+        body = message ? `${authorName}: ${message}` : `${authorName} te mandó un detalle 💜`
+      }
+      url = '/'
+    } else {
+      body = `${authorName} te mandó algo 💜`
+      url = '/'
+    }
 
     const notification = JSON.stringify({ title: 'Cerca', body, url })
 

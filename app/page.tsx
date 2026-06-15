@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase-server'
 import PageTransition from '@/components/PageTransition'
 import Countdown from '@/components/Countdown'
 import PartnerStatus, { type Profile } from '@/components/PartnerStatus'
+import SendDetail from '@/components/SendDetail'
 
 export const dynamic = 'force-dynamic'
 
@@ -47,6 +48,8 @@ export default async function HomePage() {
           />
         )}
       </section>
+
+      {user && <SendDetail currentUserId={user.id} />}
     </PageTransition>
   )
 }
