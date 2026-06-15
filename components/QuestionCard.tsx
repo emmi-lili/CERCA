@@ -14,6 +14,23 @@ export type Answer = {
   created_at: string
 }
 
+// Pastel palette for answer bubbles (RGB triplets).
+const BUBBLE_COLORS = [
+  '168,216,255', // celeste
+  '255,190,140', // naranja
+  '255,180,210', // rosa
+]
+
+// Deterministically pick a color from an id so it stays stable across renders.
+function bubbleColor(id: string): string {
+  let hash = 0
+  for (let i = 0; i < id.length; i++) {
+    hash = (hash * 31 + id.charCodeAt(i)) >>> 0
+  }
+  const rgb = BUBBLE_COLORS[hash % BUBBLE_COLORS.length]
+  return `radial-gradient(ellipse at center, rgba(${rgb},0.85) 0%, rgba(${rgb},0.35) 45%, rgba(${rgb},0) 75%)`
+}
+
 type Props = {
   currentUserId: string
   partnerName: string
@@ -193,15 +210,8 @@ export default function QuestionCard({
                     {isMe ? 'Tú' : partnerName}
                   </span>
                   <div
-                    className={isMe ? 'max-w-[85%] px-5 py-4' : 'max-w-[85%] rounded-3xl px-4 py-3'}
-                    style={
-                      isMe
-                        ? {
-                            background:
-                              'radial-gradient(ellipse at center, rgba(168,216,255,0.85) 0%, rgba(168,216,255,0.35) 45%, rgba(168,216,255,0) 75%)',
-                          }
-                        : { background: 'rgba(187,214,255,0.45)', border: '1px solid rgba(160,200,255,0.4)' }
-                    }
+                    className="max-w-[85%] px-5 py-4"
+                    style={{ background: bubbleColor(msg.id) }}
                   >
                     <p
                       className="font-display text-base leading-snug"
