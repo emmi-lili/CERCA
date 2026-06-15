@@ -21,7 +21,7 @@ const config: Config = {
         },
       },
       fontFamily: {
-        display: ['var(--font-cormorant)', 'Cormorant Garamond', 'serif'],
+        display: ['var(--font-nunito)', 'Nunito', 'system-ui', 'sans-serif'],
         sans: ['var(--font-dm-sans)', 'DM Sans', 'system-ui', 'sans-serif'],
       },
       borderRadius: {

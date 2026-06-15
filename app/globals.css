@@ -47,7 +47,8 @@ body {
   }
 
   .font-display {
-    font-family: var(--font-cormorant), 'Cormorant Garamond', serif;
+    font-family: var(--font-nunito), 'Nunito', system-ui, sans-serif;
+    font-weight: 700;
   }
 }
 

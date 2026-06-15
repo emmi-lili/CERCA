@@ -136,9 +136,19 @@ export default function QuestionCard({
         >
           <ChevronLeft size={20} color="#5a47b0" />
         </button>
-        <span className="text-xs uppercase tracking-[0.2em]" style={{ color: '#9888d0' }}>
-          Pregunta {viewIndex + 1}
-        </span>
+        <div className="flex flex-col items-center gap-1">
+          <span className="text-xs uppercase tracking-[0.2em]" style={{ color: '#9888d0' }}>
+            Pregunta {viewIndex + 1}
+          </span>
+          {isToday && (
+            <span
+              className="rounded-full px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.15em] text-white"
+              style={{ background: 'linear-gradient(135deg,#8878c4,#5a47b0)' }}
+            >
+              Hoy
+            </span>
+          )}
+        </div>
         <button
           onClick={() => setViewIndex((i) => Math.min(todayIndex, i + 1))}
           disabled={viewIndex >= todayIndex}
@@ -183,16 +193,19 @@ export default function QuestionCard({
                     {isMe ? 'Tú' : partnerName}
                   </span>
                   <div
-                    className="max-w-[85%] rounded-3xl px-4 py-3"
+                    className={isMe ? 'max-w-[85%] px-5 py-4' : 'max-w-[85%] rounded-3xl px-4 py-3'}
                     style={
                       isMe
-                        ? { background: 'linear-gradient(135deg,#8878c4,#5a47b0)' }
+                        ? {
+                            background:
+                              'radial-gradient(ellipse at center, rgba(168,216,255,0.85) 0%, rgba(168,216,255,0.35) 45%, rgba(168,216,255,0) 75%)',
+                          }
                         : { background: 'rgba(187,214,255,0.45)', border: '1px solid rgba(160,200,255,0.4)' }
                     }
                   >
                     <p
                       className="font-display text-base leading-snug"
-                      style={{ color: isMe ? '#fff' : '#3a2e6e' }}
+                      style={{ color: '#3a2e6e' }}
                     >
                       {msg.answer}
                     </p>
@@ -214,18 +227,11 @@ export default function QuestionCard({
             </motion.p>
           )}
 
-          {/* Past question with no answers */}
-          {!myAnswer && !partnerAnswer && !isToday && (
-            <p className="text-center text-sm italic" style={{ color: '#b8aee0' }}>
-              Esta pregunta ya pasó sin respuesta 🌙
-            </p>
-          )}
-
           <div ref={bottomRef} />
         </div>
 
-        {/* Input — only for today's unanswered question */}
-        {isToday && !myAnswer && (
+        {/* Input — available for any unanswered question */}
+        {!myAnswer && (
           <div className="flex flex-col gap-1">
             <div
               className="flex items-end gap-2 rounded-2xl p-2"
@@ -235,7 +241,7 @@ export default function QuestionCard({
                 value={draft}
                 onChange={(e) => { setDraft(e.target.value); setSendError('') }}
                 onKeyDown={handleKeyDown}
-                placeholder="Tu respuesta…"
+                placeholder={isToday ? 'Tu respuesta de hoy…' : 'Tu respuesta…'}
                 rows={2}
                 className="flex-1 resize-none bg-transparent px-2 py-1 font-display text-base"
                 style={{ color: '#3a2e6e' }}

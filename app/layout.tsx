@@ -1,12 +1,12 @@
 import type { Metadata, Viewport } from 'next'
-import { Cormorant_Garamond, DM_Sans } from 'next/font/google'
+import { Nunito, DM_Sans } from 'next/font/google'
 import './globals.css'
 import BottomNav from '@/components/BottomNav'
 
-const cormorant = Cormorant_Garamond({
+const nunito = Nunito({
   subsets: ['latin'],
-  weight: ['300', '400', '500', '600'],
-  variable: '--font-cormorant',
+  weight: ['400', '600', '700', '800', '900'],
+  variable: '--font-nunito',
   display: 'swap',
 })
 
@@ -35,7 +35,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="es" className={`${cormorant.variable} ${dmSans.variable}`}>
+    <html lang="es" className={`${nunito.variable} ${dmSans.variable}`}>
       <body>
         {/* Floating decorative orbs */}
         <div
