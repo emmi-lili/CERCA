@@ -1,15 +1,31 @@
 'use client'
 
-import { useState } from 'react'
-import { motion } from 'framer-motion'
+import { useEffect, useState } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
 import { createClient } from '@/lib/supabase'
 import { ALLOWED_EMAILS } from '@/lib/constants'
+import Welcome from '@/components/Welcome'
+
+const WELCOME_KEY = 'cerca_seen_welcome'
 
 export default function AuthPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [status, setStatus] = useState<'idle' | 'loading' | 'denied'>('idle')
   const [error, setError] = useState('')
+
+  // `null` until we've read localStorage; treated as "show" to avoid a flash
+  // of the login form on first launch.
+  const [showWelcome, setShowWelcome] = useState<boolean | null>(null)
+
+  useEffect(() => {
+    setShowWelcome(localStorage.getItem(WELCOME_KEY) !== '1')
+  }, [])
+
+  const dismissWelcome = () => {
+    localStorage.setItem(WELCOME_KEY, '1')
+    setShowWelcome(false)
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -112,6 +128,10 @@ export default function AuthPage() {
           )}
         </form>
       </motion.div>
+
+      <AnimatePresence>
+        {showWelcome !== false && <Welcome onNext={dismissWelcome} />}
+      </AnimatePresence>
     </main>
   )
 }
