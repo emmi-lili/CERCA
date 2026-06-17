@@ -44,12 +44,12 @@ export default function Welcome({ onNext }: { onNext: () => void }) {
               }}
             />
             <Image
-              src="/nubes2.png"
-              alt="Dos nubecitas abrazándose"
-              width={1024}
-              height={576}
+              src="/nube-abrazo.png"
+              alt="Nubecita abrazándose"
+              width={923}
+              height={812}
               priority
-              className="relative mx-auto h-auto w-[92%] max-w-[360px]"
+              className="relative mx-auto h-auto w-[80%] max-w-[300px]"
             />
           </motion.div>
         </div>
