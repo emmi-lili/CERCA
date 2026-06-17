@@ -68,7 +68,7 @@ Deno.serve(async (req) => {
       body: '¡Hay una nueva pregunta esperándote hoy!',
       url: '/juegos',
     })
-s
+
     await Promise.all(
       subs.map(async (sub) => {
         try {
