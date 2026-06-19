@@ -36,3 +36,29 @@ select cron.schedule(
 
 -- Verify:  select * from cron.job;
 -- Remove:  select cron.unschedule('cerca-daily-question-reminder');
+
+-- =============================================================================
+-- Calendar reminders — anniversary (day 11) + events 1 day before and same day
+-- =============================================================================
+-- Fires every day at 13:00 UTC (same as the question reminder).
+-- Deploy first:
+--   supabase functions deploy calendar-reminder --no-verify-jwt
+-- =============================================================================
+
+select cron.schedule(
+  'cerca-calendar-reminder',
+  '0 13 * * *',
+  $$
+  select net.http_post(
+    url     := 'https://<YOUR_PROJECT_URL>/functions/v1/calendar-reminder',
+    headers := jsonb_build_object(
+      'Content-Type',  'application/json',
+      'Authorization', 'Bearer <YOUR_SERVICE_ROLE_KEY>'
+    ),
+    body    := '{}'::jsonb
+  );
+  $$
+);
+
+-- Verify:  select * from cron.job;
+-- Remove:  select cron.unschedule('cerca-calendar-reminder');
