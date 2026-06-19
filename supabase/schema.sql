@@ -76,6 +76,29 @@ create table if not exists public.push_subscriptions (
   created_at timestamptz default now()
 );
 
+-- Shared calendar events (plans + important dates)
+create table if not exists public.calendar_events (
+  id uuid default gen_random_uuid() primary key,
+  couple_id text default 'cerca-main',
+  author_id uuid references public.profiles(id),
+  kind text not null check (kind in ('plan', 'important')),
+  title text not null,
+  description text,
+  event_date date not null,
+  event_time time,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
+create index if not exists calendar_events_event_date_idx
+  on public.calendar_events (event_date);
+
+-- Deduplication log for scheduled calendar push reminders
+create table if not exists public.calendar_reminder_log (
+  reminder_key text primary key,
+  sent_at timestamptz default now()
+);
+
 -- Enable Realtime on journal_entries, profiles and question_games.
 -- Wrapped so re-running the schema doesn't fail if they're already members.
 do $$
@@ -102,6 +125,12 @@ begin
 exception when duplicate_object then null;
 end $$;
 
+do $$
+begin
+  alter publication supabase_realtime add table calendar_events;
+exception when duplicate_object then null;
+end $$;
+
 -- -----------------------------------------------------------------------------
 -- Row Level Security
 -- -----------------------------------------------------------------------------
@@ -116,6 +145,10 @@ create policy "couple access" on question_games for all using (couple_id = 'cerc
 alter table details enable row level security;
 drop policy if exists "couple access" on details;
 create policy "couple access" on details for all using (couple_id = 'cerca-main');
+
+alter table calendar_events enable row level security;
+drop policy if exists "couple access" on calendar_events;
+create policy "couple access" on calendar_events for all using (couple_id = 'cerca-main');
 
 alter table profiles enable row level security;
 drop policy if exists "profiles visible to couple" on profiles;

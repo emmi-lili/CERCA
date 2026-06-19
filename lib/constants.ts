@@ -4,6 +4,10 @@ export const ALLOWED_EMAILS = ['emmi.a.rivero@gmail.com', 'santivillarley1010@gm
 
 export const COUPLE_ID = 'cerca-main'
 
+// Monthly anniversary — fixed on the 11th of every month.
+export const ANNIVERSARY_DAY = 11
+export const ANNIVERSARY_TITLE = 'Nuestro aniversario'
+
 // Reunion date — update as needed.
 export const REUNION_DATE = new Date('2026-06-26T02:00:00')
 
