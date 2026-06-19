@@ -18,19 +18,26 @@ export default function SessionKeeper() {
       })
     }
 
+    let lastRefresh = 0
+    const refreshThrottled = () => {
+      const now = Date.now()
+      if (now - lastRefresh < 30_000) return
+      lastRefresh = now
+      refresh()
+    }
+
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'TOKEN_REFRESHED' || event === 'SIGNED_IN') {
-        router.refresh()
+        refreshThrottled()
       }
     })
 
     const onVisible = () => {
-      if (document.visibilityState === 'visible') refresh()
+      if (document.visibilityState === 'visible') refreshThrottled()
     }
 
-    refresh()
     document.addEventListener('visibilitychange', onVisible)
 
     return () => {

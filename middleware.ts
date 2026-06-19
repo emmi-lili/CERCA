@@ -78,8 +78,16 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
+  // Only run on app pages — never on /_next/* (CSS/JS) or static files.
+  // If middleware hits a stylesheet request it can return HTML (redirect) instead
+  // of CSS, which breaks all Tailwind styling across the app.
   matcher: [
-    // Run on everything except static assets, the service worker and images.
-    '/((?!_next/static|_next/image|favicon.ico|sw.js|manifest.json|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/',
+    '/auth/:path*',
+    '/diario',
+    '/juegos',
+    '/metas',
+    '/calendario',
+    '/perfil',
   ],
 }

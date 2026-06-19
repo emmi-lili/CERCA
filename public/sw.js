@@ -1,11 +1,16 @@
-// Cerca service worker — handles Web Push for the two of us.
+// Cerca service worker v2 — handles Web Push for the two of us.
 
 self.addEventListener('install', (event) => {
   self.skipWaiting()
 })
 
 self.addEventListener('activate', (event) => {
-  event.waitUntil(self.clients.claim())
+  event.waitUntil(
+    Promise.all([
+      caches.keys().then((keys) => Promise.all(keys.map((k) => caches.delete(k)))),
+      self.clients.claim(),
+    ])
+  )
 })
 
 self.addEventListener('push', (event) => {
