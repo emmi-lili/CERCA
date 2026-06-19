@@ -42,6 +42,11 @@
 //     • Events: INSERT
 //     • Type: Supabase Edge Function -> send-push
 //   One on table `journal_entries`, one on table `question_games`.
+//
+//   Optional third webhook for the shared calendar:
+//     • Table: calendar_events
+//     • Events: INSERT
+//     • Type: Supabase Edge Function -> send-push
 // =============================================================================
 
 import webpush from 'npm:web-push@3.6.7'
@@ -133,6 +138,14 @@ Deno.serve(async (req) => {
         body = message ? `${authorName}: ${message}` : `${authorName} te mandó un detalle 💜`
       }
       url = '/'
+    } else if (payload.table === 'calendar_events') {
+      const kind = payload.record?.kind
+      const title = (payload.record?.title as string) ?? 'un evento'
+      body =
+        kind === 'plan'
+          ? `${authorName} agregó un plan: ${title}`
+          : `${authorName} marcó una fecha importante: ${title}`
+      url = '/calendario'
     } else {
       body = `${authorName} te mandó algo 💜`
       url = '/'
