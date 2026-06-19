@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Heart, Pencil, Plane, Plus, Sparkles, Trash2, X } from 'lucide-react'
 import EventForm, { type EventFormValues } from './EventForm'
@@ -14,6 +14,8 @@ type Props = {
   iso: string | null
   events: CalendarEvent[]
   names: Record<string, string>
+  initialMode?: 'list' | 'create'
+  allowDateEdit?: boolean
   onClose: () => void
   onCreate: (iso: string, values: EventFormValues) => Promise<void>
   onUpdate: (event: CalendarEvent, values: EventFormValues) => Promise<void>
@@ -36,14 +38,20 @@ export default function DayDetailSheet({
   iso,
   events,
   names,
+  initialMode = 'list',
+  allowDateEdit = false,
   onClose,
   onCreate,
   onUpdate,
   onDelete,
 }: Props) {
-  const [mode, setMode] = useState<'list' | 'create' | 'edit'>('list')
+  const [mode, setMode] = useState<'list' | 'create' | 'edit'>(initialMode)
   const [editing, setEditing] = useState<CalendarEvent | null>(null)
   const [busy, setBusy] = useState(false)
+
+  useEffect(() => {
+    if (iso) setMode(initialMode)
+  }, [iso, initialMode])
 
   const dayEvents = iso ? getEventsForDay(events, iso) : []
 
@@ -209,6 +217,7 @@ export default function DayDetailSheet({
               <EventForm
                 eventDate={iso}
                 saving={busy}
+                allowDateEdit={allowDateEdit}
                 onSubmit={handleCreate}
                 onCancel={reset}
               />

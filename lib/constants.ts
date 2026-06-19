@@ -6,7 +6,7 @@ export const COUPLE_ID = 'cerca-main'
 
 // Monthly anniversary — fixed on the 11th of every month.
 export const ANNIVERSARY_DAY = 11
-export const ANNIVERSARY_TITLE = 'Nuestro aniversario'
+export const ANNIVERSARY_TITLE = 'Aniversario del primer beso'
 
 // Reunion date — update as needed.
 export const REUNION_DATE = new Date('2026-06-26T02:00:00')

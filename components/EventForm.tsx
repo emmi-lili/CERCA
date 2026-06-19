@@ -8,12 +8,14 @@ export type EventFormValues = {
   title: string
   description: string
   event_time: string
+  event_date?: string
 }
 
 type Props = {
   eventDate: string
   initial?: CalendarEvent | null
   saving?: boolean
+  allowDateEdit?: boolean
   onSubmit: (values: EventFormValues) => Promise<void>
   onCancel: () => void
 }
@@ -27,6 +29,7 @@ export default function EventForm({
   eventDate,
   initial,
   saving = false,
+  allowDateEdit = false,
   onSubmit,
   onCancel,
 }: Props) {
@@ -36,16 +39,18 @@ export default function EventForm({
   const [title, setTitle] = useState(initial?.title ?? '')
   const [description, setDescription] = useState(initial?.description ?? '')
   const [eventTime, setEventTime] = useState(initial?.event_time?.slice(0, 5) ?? '')
+  const [date, setDate] = useState(eventDate)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     const trimmed = title.trim()
-    if (!trimmed || saving) return
+    if (!trimmed || saving || !date) return
     await onSubmit({
       kind,
       title: trimmed,
       description: description.trim(),
       event_time: eventTime,
+      ...(allowDateEdit ? { event_date: date } : {}),
     })
   }
 
@@ -115,9 +120,25 @@ export default function EventForm({
         />
       </div>
 
-      <p className="text-xs" style={{ color: '#b8aee0' }}>
-        Fecha: {eventDate}
-      </p>
+      <div className="flex flex-col gap-1">
+        <label className="text-xs uppercase tracking-wide" style={{ color: '#9888d0' }}>
+          Fecha
+        </label>
+        {allowDateEdit ? (
+          <input
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            required
+            className="w-full rounded-2xl bg-white/60 px-4 py-2.5 text-base"
+            style={{ color: '#3a2e6e', border: '0.5px solid rgba(180,160,240,0.35)' }}
+          />
+        ) : (
+          <p className="rounded-2xl bg-white/40 px-4 py-2.5 text-sm capitalize" style={{ color: '#3a2e6e' }}>
+            {eventDate}
+          </p>
+        )}
+      </div>
 
       <div className="flex gap-2">
         <button

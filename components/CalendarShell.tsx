@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Plus } from 'lucide-react'
 import { createClient } from '@/lib/supabase'
 import { COUPLE_ID } from '@/lib/constants'
 import {
@@ -12,6 +12,7 @@ import {
   getMonthDays,
   getUpcomingEvents,
   mergeCalendarEvents,
+  toIsoDate,
   type CalendarEvent,
   type DbCalendarEvent,
 } from '@/lib/calendar'
@@ -38,6 +39,8 @@ export default function CalendarShell({
   const [viewMonth, setViewMonth] = useState(today.getMonth())
   const [dbEvents, setDbEvents] = useState<DbCalendarEvent[]>(initialEvents)
   const [selectedIso, setSelectedIso] = useState<string | null>(null)
+  const [sheetMode, setSheetMode] = useState<'list' | 'create'>('list')
+  const [allowDateEdit, setAllowDateEdit] = useState(false)
 
   const monthDays = useMemo(
     () => getMonthDays(viewYear, viewMonth),
@@ -114,6 +117,7 @@ export default function CalendarShell({
   const getKindsForDay = (iso: string) => getEventKindsForDay(allEvents, iso)
 
   const handleCreate = async (iso: string, values: EventFormValues) => {
+    const eventDate = values.event_date ?? iso
     const { data, error } = await supabase
       .from('calendar_events')
       .insert({
@@ -122,7 +126,7 @@ export default function CalendarShell({
         kind: values.kind,
         title: values.title,
         description: values.description || null,
-        event_date: iso,
+        event_date: eventDate,
         event_time: values.event_time || null,
       })
       .select()
@@ -167,6 +171,24 @@ export default function CalendarShell({
     }
   }
 
+  const openDay = (iso: string) => {
+    setSelectedIso(iso)
+    setSheetMode('list')
+    setAllowDateEdit(false)
+  }
+
+  const openCreateEvent = () => {
+    setSelectedIso(toIsoDate(today))
+    setSheetMode('create')
+    setAllowDateEdit(true)
+  }
+
+  const closeSheet = () => {
+    setSelectedIso(null)
+    setSheetMode('list')
+    setAllowDateEdit(false)
+  }
+
   const sheetEvents = useMemo(() => {
     if (!selectedIso) return []
     const dbForDay = dbEvents
@@ -209,9 +231,19 @@ export default function CalendarShell({
       <MonthGrid
         days={monthDays}
         selectedIso={selectedIso}
-        onSelectDay={setSelectedIso}
+        onSelectDay={openDay}
         getKindsForDay={getKindsForDay}
       />
+
+      <button
+        type="button"
+        onClick={openCreateEvent}
+        className="flex items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-medium text-white"
+        style={{ background: 'linear-gradient(135deg,#8878c4,#5a47b0)' }}
+      >
+        <Plus size={16} />
+        Crear un evento
+      </button>
 
       <UpcomingEvents events={upcoming} />
 
@@ -219,7 +251,9 @@ export default function CalendarShell({
         iso={selectedIso}
         events={sheetEvents}
         names={names}
-        onClose={() => setSelectedIso(null)}
+        initialMode={sheetMode}
+        allowDateEdit={allowDateEdit}
+        onClose={closeSheet}
         onCreate={handleCreate}
         onUpdate={handleUpdate}
         onDelete={handleDelete}

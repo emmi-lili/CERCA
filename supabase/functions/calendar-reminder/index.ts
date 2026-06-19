@@ -30,7 +30,7 @@ const VAPID_PRIVATE_KEY = Deno.env.get('VAPID_PRIVATE_KEY') ?? ''
 const VAPID_SUBJECT = Deno.env.get('VAPID_SUBJECT') ?? 'mailto:cerca@example.com'
 
 const ANNIVERSARY_DAY = 11
-const ANNIVERSARY_TITLE = 'Nuestro aniversario'
+const ANNIVERSARY_TITLE = 'Aniversario del primer beso'
 
 webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY)
 
@@ -109,7 +109,7 @@ Deno.serve(async () => {
     if (tomorrowDate.getUTCDate() === ANNIVERSARY_DAY) {
       reminders.push({
         key: `anniversary-${tomorrow}-before`,
-        body: 'Mañana es nuestro aniversario 💜',
+        body: 'Mañana es el Aniversario del primer beso 💜',
       })
     }
 
