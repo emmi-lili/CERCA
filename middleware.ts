@@ -1,13 +1,21 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
+import { supabaseCookieOptions } from '@/lib/supabase-config'
 
 type CookieToSet = { name: string; value: string; options: CookieOptions }
+
+function applyCookies(target: NextResponse, cookiesToSet: CookieToSet[]) {
+  cookiesToSet.forEach(({ name, value, options }) =>
+    target.cookies.set(name, value, options)
+  )
+}
 
 // Refreshes the Supabase session cookie on every request and guards the app:
 // unauthenticated visitors are sent to /auth, while authenticated visitors who
 // land on /auth are sent home.
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request })
+  let pendingCookies: CookieToSet[] = []
 
   const { pathname } = request.nextUrl
 
@@ -27,18 +35,18 @@ export async function middleware(request: NextRequest) {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
+      cookieOptions: supabaseCookieOptions,
       cookies: {
         getAll() {
           return request.cookies.getAll()
         },
         setAll(cookiesToSet: CookieToSet[]) {
+          pendingCookies = cookiesToSet
           cookiesToSet.forEach(({ name, value }) =>
             request.cookies.set(name, value)
           )
           response = NextResponse.next({ request })
-          cookiesToSet.forEach(({ name, value, options }) =>
-            response.cookies.set(name, value, options)
-          )
+          applyCookies(response, cookiesToSet)
         },
       },
     }
@@ -53,13 +61,17 @@ export async function middleware(request: NextRequest) {
   if (!user && !isAuthRoute) {
     const url = request.nextUrl.clone()
     url.pathname = '/auth'
-    return NextResponse.redirect(url)
+    const redirect = NextResponse.redirect(url)
+    applyCookies(redirect, pendingCookies)
+    return redirect
   }
 
   if (user && pathname === '/auth') {
     const url = request.nextUrl.clone()
     url.pathname = '/'
-    return NextResponse.redirect(url)
+    const redirect = NextResponse.redirect(url)
+    applyCookies(redirect, pendingCookies)
+    return redirect
   }
 
   return response

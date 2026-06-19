@@ -3,6 +3,7 @@ import { Nunito, DM_Sans } from 'next/font/google'
 import './globals.css'
 import BottomNav from '@/components/BottomNav'
 import AppBackground from '@/components/AppBackground'
+import SessionKeeper from '@/components/SessionKeeper'
 
 const nunito = Nunito({
   subsets: ['latin'],
@@ -38,6 +39,7 @@ export default function RootLayout({
   return (
     <html lang="es" className={`${nunito.variable} ${dmSans.variable}`}>
       <body>
+        <SessionKeeper />
         <AppBackground />
 
         {/* Mobile-first centered container */}

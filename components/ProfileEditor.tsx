@@ -47,7 +47,7 @@ export default function ProfileEditor({ profile }: { profile: Profile }) {
   }
 
   const signOut = async () => {
-    await supabase.auth.signOut()
+    await supabase.auth.signOut({ scope: 'local' })
     router.push('/auth')
     router.refresh()
   }
