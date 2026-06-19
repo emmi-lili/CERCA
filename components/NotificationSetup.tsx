@@ -28,7 +28,7 @@ export default function NotificationSetup({ currentUserId }: Props) {
 
     // Register the SW and reflect any existing subscription state.
     navigator.serviceWorker
-      .register('/sw.js')
+      .register('/sw.js', { updateViaCache: 'none' })
       .then((reg) => reg.pushManager.getSubscription())
       .then((sub) => setEnabled(Boolean(sub) && Notification.permission === 'granted'))
       .catch(() => {})

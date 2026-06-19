@@ -1,5 +1,6 @@
 'use client'
 
+import type { CSSProperties } from 'react'
 import { Heart, Plane, Sparkles } from 'lucide-react'
 import {
   getWeekdayLabels,
@@ -33,6 +34,12 @@ function DayIndicator({ kinds }: { kinds: CalendarEventKind[] }) {
   )
 }
 
+const GRID_7: CSSProperties = {
+  display: 'grid',
+  gridTemplateColumns: 'repeat(7, minmax(0, 1fr))',
+  gap: 4,
+}
+
 export default function MonthGrid({
   days,
   selectedIso,
@@ -43,7 +50,7 @@ export default function MonthGrid({
 
   return (
     <div className="glass-strong p-4">
-      <div className="mb-3 grid grid-cols-7 gap-1">
+      <div className="mb-3 grid grid-cols-7 gap-1" style={GRID_7}>
         {weekdays.map((label, i) => (
           <div
             key={`${label}-${i}`}
@@ -55,7 +62,7 @@ export default function MonthGrid({
         ))}
       </div>
 
-      <div className="grid grid-cols-7 gap-1">
+      <div className="grid grid-cols-7 gap-1" style={GRID_7}>
         {days.map((cell) => {
           const kinds = getKindsForDay(cell.iso)
           const isToday = isSameIso(cell.iso)

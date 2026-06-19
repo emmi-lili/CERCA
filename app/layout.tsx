@@ -4,6 +4,7 @@ import './globals.css'
 import BottomNav from '@/components/BottomNav'
 import AppBackground from '@/components/AppBackground'
 import SessionKeeper from '@/components/SessionKeeper'
+import SwUpdate from '@/components/SwUpdate'
 
 const nunito = Nunito({
   subsets: ['latin'],
@@ -49,6 +50,7 @@ export default function RootLayout({
   return (
     <html lang="es" className={`${nunito.variable} ${dmSans.variable}`}>
       <body>
+        <SwUpdate />
         <SessionKeeper />
         <AppBackground />
 

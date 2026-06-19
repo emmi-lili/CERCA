@@ -1,4 +1,4 @@
-// Cerca service worker v2 — handles Web Push for the two of us.
+// Cerca service worker v3 — Web Push + fresh HTML on every open.
 
 self.addEventListener('install', (event) => {
   self.skipWaiting()
@@ -11,6 +11,13 @@ self.addEventListener('activate', (event) => {
       self.clients.claim(),
     ])
   )
+})
+
+// Always fetch pages from the network so deploys never serve stale HTML/CSS links.
+self.addEventListener('fetch', (event) => {
+  if (event.request.mode === 'navigate') {
+    event.respondWith(fetch(event.request))
+  }
 })
 
 self.addEventListener('push', (event) => {

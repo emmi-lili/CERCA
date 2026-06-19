@@ -86,7 +86,6 @@ export const config = {
     '/auth/:path*',
     '/diario',
     '/juegos',
-    '/metas',
     '/calendario',
     '/perfil',
   ],

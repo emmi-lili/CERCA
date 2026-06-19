@@ -172,16 +172,25 @@ export function formatUpcomingLabel(daysUntil: number): string {
   return `${daysUntil} días`
 }
 
+export function getNextAnniversary(fromDate: Date = new Date()): CalendarEvent {
+  const today = startOfDay(fromDate)
+  let candidate = new Date(today.getFullYear(), today.getMonth(), ANNIVERSARY_DAY)
+  if (candidate < today) {
+    candidate = new Date(today.getFullYear(), today.getMonth() + 1, ANNIVERSARY_DAY)
+  }
+  return getAnniversaryForMonth(candidate.getFullYear(), candidate.getMonth())
+}
+
 export function getUpcomingEvents(
   dbEvents: DbCalendarEvent[],
   fromDate: Date = new Date(),
   limit = 5,
 ): UpcomingEvent[] {
   const today = startOfDay(fromDate)
-  const horizon = new Date(today)
-  horizon.setMonth(horizon.getMonth() + 14)
 
-  const all = mergeCalendarEvents(dbEvents, today, horizon)
+  const mapped = dbEvents.map(dbEventToCalendarEvent)
+  const nextAnniversary = getNextAnniversary(today)
+  const all = [...mapped, nextAnniversary]
   const upcoming = all
     .map((event) => {
       const daysUntil = daysBetween(today, parseIsoDate(event.event_date))
