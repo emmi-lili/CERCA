@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next'
+import Script from 'next/script'
 import { Nunito, DM_Sans } from 'next/font/google'
 import './globals.css'
 import BottomNav from '@/components/BottomNav'
@@ -23,15 +24,19 @@ const dmSans = DM_Sans({
 export const metadata: Metadata = {
   title: 'Cerca',
   description: 'Un rinconcito solo para nosotros dos',
-  manifest: '/manifest.json',
+  ...(process.env.NODE_ENV === 'production'
+    ? {
+        manifest: '/manifest.json',
+        appleWebApp: {
+          capable: true,
+          title: 'Cerca',
+          statusBarStyle: 'default' as const,
+        },
+      }
+    : {}),
   icons: {
     icon: '/cerca.png',
     apple: '/cerca.png',
-  },
-  appleWebApp: {
-    capable: true,
-    title: 'Cerca',
-    statusBarStyle: 'default',
   },
 }
 
@@ -50,6 +55,15 @@ export default function RootLayout({
   return (
     <html lang="es" className={`${nunito.variable} ${dmSans.variable}`}>
       <body>
+        {process.env.NODE_ENV === 'development' && (
+          <Script id="dev-unregister-sw" strategy="beforeInteractive">
+            {`if ('serviceWorker' in navigator) {
+              navigator.serviceWorker.getRegistrations().then(function (regs) {
+                regs.forEach(function (r) { r.unregister(); });
+              });
+            }`}
+          </Script>
+        )}
         <SwUpdate />
         <SessionKeeper />
         <AppBackground />

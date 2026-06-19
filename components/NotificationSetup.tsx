@@ -19,6 +19,7 @@ export default function NotificationSetup({ currentUserId }: Props) {
   useEffect(() => {
     if (
       typeof window === 'undefined' ||
+      process.env.NODE_ENV !== 'production' ||
       !('serviceWorker' in navigator) ||
       !('PushManager' in window)
     ) {
@@ -38,6 +39,11 @@ export default function NotificationSetup({ currentUserId }: Props) {
     if (busy) return
     setBusy(true)
     try {
+      if (process.env.NODE_ENV !== 'production') {
+        setBusy(false)
+        return
+      }
+
       const permission = await Notification.requestPermission()
       if (permission !== 'granted') {
         setBusy(false)
