@@ -19,8 +19,8 @@ self.addEventListener('push', (event) => {
   const title = payload.title || 'Cerca 💜'
   const options = {
     body: payload.body || 'Tienes algo nuevo',
-    icon: '/icon.png',
-    badge: '/icon.png',
+    icon: '/cerca.png',
+    badge: '/cerca.png',
     data: { url: payload.url || '/' },
     vibrate: [80, 40, 80],
   }

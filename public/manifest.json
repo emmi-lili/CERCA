@@ -1,0 +1,17 @@
+{
+  "name": "Cerca",
+  "short_name": "Cerca",
+  "description": "Un rinconcito solo para nosotros dos",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#e8e0f8",
+  "theme_color": "#e8e0f8",
+  "icons": [
+    {
+      "src": "/cerca.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

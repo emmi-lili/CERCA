@@ -22,6 +22,16 @@ const dmSans = DM_Sans({
 export const metadata: Metadata = {
   title: 'Cerca',
   description: 'Un rinconcito solo para nosotros dos',
+  manifest: '/manifest.json',
+  icons: {
+    icon: '/cerca.png',
+    apple: '/cerca.png',
+  },
+  appleWebApp: {
+    capable: true,
+    title: 'Cerca',
+    statusBarStyle: 'default',
+  },
 }
 
 export const viewport: Viewport = {
