@@ -3,6 +3,7 @@ import PageTransition from '@/components/PageTransition'
 import Countdown from '@/components/Countdown'
 import PartnerStatus, { type Profile } from '@/components/PartnerStatus'
 import SendDetail from '@/components/SendDetail'
+import { getReunionRemaining } from '@/lib/countdown'
 
 export const dynamic = 'force-dynamic'
 
@@ -32,7 +33,7 @@ export default async function HomePage() {
         </h1>
       </header>
 
-      <Countdown />
+      <Countdown initial={getReunionRemaining()} />
 
       <section className="flex flex-col gap-3">
         <h2

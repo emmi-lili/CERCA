@@ -2,8 +2,7 @@
 
 import { motion } from 'framer-motion'
 
-// Standard page entrance. initial={false} avoids a blank screen when router.refresh()
-// re-mounts the page (SessionKeeper) before the fade-in animation completes.
+// Standard page entrance. initial={false} avoids a blank flash on re-mount.
 export default function PageTransition({
   children,
 }: {

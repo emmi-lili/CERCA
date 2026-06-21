@@ -2,30 +2,11 @@
 
 import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { REUNION_DATE, REUNION_LABEL } from '@/lib/constants'
-
-type Remaining = {
-  days: number
-  hours: number
-  minutes: number
-  seconds: number
-  done: boolean
-}
-
-function getRemaining(): Remaining {
-  const diff = REUNION_DATE.getTime() - Date.now()
-  if (diff <= 0) {
-    return { days: 0, hours: 0, minutes: 0, seconds: 0, done: true }
-  }
-  const totalSeconds = Math.floor(diff / 1000)
-  return {
-    days: Math.floor(totalSeconds / 86400),
-    hours: Math.floor((totalSeconds % 86400) / 3600),
-    minutes: Math.floor((totalSeconds % 3600) / 60),
-    seconds: totalSeconds % 60,
-    done: false,
-  }
-}
+import { REUNION_LABEL } from '@/lib/constants'
+import {
+  getReunionRemaining,
+  type ReunionRemaining,
+} from '@/lib/countdown'
 
 function pad(n: number) {
   return n.toString().padStart(2, '0')
@@ -74,23 +55,26 @@ function Unit({
   )
 }
 
-export default function Countdown() {
-  const [time, setTime] = useState<Remaining | null>(null)
+type Props = {
+  initial: ReunionRemaining
+}
+
+export default function Countdown({ initial }: Props) {
+  const [time, setTime] = useState(initial)
 
   useEffect(() => {
-    setTime(getRemaining())
-    const id = setInterval(() => setTime(getRemaining()), 1000)
+    const id = setInterval(() => setTime(getReunionRemaining()), 1000)
     return () => clearInterval(id)
   }, [])
 
   const units = [
-    { label: 'Días',  value: time ? pad(time.days)    : '--' },
-    { label: 'Horas', value: time ? pad(time.hours)   : '--' },
-    { label: 'Min',   value: time ? pad(time.minutes) : '--' },
-    { label: 'Seg',   value: time ? pad(time.seconds) : '--', animate: true },
+    { label: 'Días',  value: pad(time.days) },
+    { label: 'Horas', value: pad(time.hours) },
+    { label: 'Min',   value: pad(time.minutes) },
+    { label: 'Seg',   value: pad(time.seconds), animate: true },
   ]
 
-  if (time?.done) {
+  if (time.done) {
     return (
       <div
         className="flex flex-col items-center gap-2 rounded-2xl px-6 py-8 text-center"
