@@ -9,10 +9,10 @@ export const ANNIVERSARY_DAY = 11
 export const ANNIVERSARY_TITLE = 'Aniversario del primer beso'
 
 // Reunion date — update as needed.
-export const REUNION_DATE = new Date('2026-06-26T02:00:00')
+export const REUNION_DATE = new Date('2026-06-27T02:00:00')
 
 // Human-readable label shown under the countdown.
-export const REUNION_LABEL = 'Nos vemos el 26 de junio · 2:00 AM'
+export const REUNION_LABEL = 'Nos vemos el 27 de junio · 2:00 AM'
 
 // Fallback start date for the daily question unlock, used when there are no
 // journal entries yet to anchor "day 1".
