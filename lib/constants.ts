@@ -14,6 +14,10 @@ export const REUNION_DATE = new Date('2026-06-27T02:00:00')
 // Human-readable label shown under the countdown.
 export const REUNION_LABEL = 'Nos vemos el 27 de junio · 2:00 AM'
 
+// Daily questions unlock at this hour in APP_TIMEZONE (matches the push cron).
+export const QUESTION_UNLOCK_HOUR = 10
+export const APP_TIMEZONE = 'America/Havana'
+
 // Fallback start date for the daily question unlock, used when there are no
 // journal entries yet to anchor "day 1".
 export const APP_START_DATE = new Date('2026-06-01T00:00:00')

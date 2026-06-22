@@ -7,7 +7,7 @@
 --   <YOUR_PROJECT_URL>      → e.g. https://hypryiiafyoetamcuzov.supabase.co
 --   <YOUR_SERVICE_ROLE_KEY> → Settings → API → service_role key
 --
--- The job fires every day at 13:00 UTC (9:00 AM ET / 10:00 AM Cuba time).
+-- The job fires every day at 14:00 UTC (10:00 AM America/Havana).
 -- Change the cron expression to adjust the time.
 --
 -- Prerequisites:
@@ -21,7 +21,7 @@ create extension if not exists pg_net;
 
 select cron.schedule(
   'cerca-daily-question-reminder',
-  '0 13 * * *',   -- every day at 13:00 UTC  (change to taste)
+  '0 14 * * *',   -- every day at 14:00 UTC = 10:00 AM Havana
   $$
   select net.http_post(
     url     := 'https://<YOUR_PROJECT_URL>/functions/v1/question-reminder',
@@ -40,14 +40,14 @@ select cron.schedule(
 -- =============================================================================
 -- Calendar reminders — anniversary (day 11) + events 1 day before and same day
 -- =============================================================================
--- Fires every day at 13:00 UTC (same as the question reminder).
+-- Fires every day at 14:00 UTC (same as the question reminder).
 -- Deploy first:
 --   supabase functions deploy calendar-reminder --no-verify-jwt
 -- =============================================================================
 
 select cron.schedule(
   'cerca-calendar-reminder',
-  '0 13 * * *',
+  '0 14 * * *',
   $$
   select net.http_post(
     url     := 'https://<YOUR_PROJECT_URL>/functions/v1/calendar-reminder',

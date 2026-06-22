@@ -1,17 +1,21 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Heart, Sparkles } from 'lucide-react'
 import QuestionCard, { type Answer } from './QuestionCard'
-import { QUESTIONS_CONOCERNOS, QUESTIONS_CRECER, INDEX_OFFSET_CRECER } from '@/lib/constants'
-import { getTodayQuestionIndex } from '@/lib/utils'
+import {
+  QUESTIONS_CONOCERNOS,
+  QUESTIONS_CRECER,
+  INDEX_OFFSET_CRECER,
+  QUESTION_UNLOCK_HOUR,
+} from '@/lib/constants'
+import { getTodayQuestionIndex, isBeforeTodayQuestionUnlock } from '@/lib/utils'
 
 type Category = 'conocernos' | 'crecer'
 
 type Props = {
   currentUserId: string
   partnerName: string
-  todayIndex: number        // index for "conocernos" category
   initialAnswers: Answer[]
   firstEntryDate: string | null
 }
@@ -24,18 +28,27 @@ const TABS: { id: Category; label: string; sublabel: string; Icon: typeof Heart 
 export default function GamesShell({
   currentUserId,
   partnerName,
-  todayIndex,
   initialAnswers,
   firstEntryDate,
 }: Props) {
   const [category, setCategory] = useState<Category>('conocernos')
+  const [now, setNow] = useState(() => new Date())
 
-  const isConocer  = category === 'conocernos'
-  const questions  = isConocer ? QUESTIONS_CONOCERNOS : QUESTIONS_CRECER
-  const offset     = isConocer ? 0 : INDEX_OFFSET_CRECER
-  const todayIdx   = isConocer
-    ? todayIndex
-    : getTodayQuestionIndex(firstEntryDate, QUESTIONS_CRECER.length)
+  // Re-check every minute so both sections unlock right at 10 AM.
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 60_000)
+    return () => clearInterval(id)
+  }, [])
+
+  const isConocer = category === 'conocernos'
+  const questions = isConocer ? QUESTIONS_CONOCERNOS : QUESTIONS_CRECER
+  const offset = isConocer ? 0 : INDEX_OFFSET_CRECER
+  const todayIdx = getTodayQuestionIndex(
+    firstEntryDate,
+    questions.length,
+    now,
+  )
+  const waitingForUnlock = isBeforeTodayQuestionUnlock(now)
 
   return (
     <div className="flex flex-col gap-5">
@@ -82,6 +95,19 @@ export default function GamesShell({
           )
         })}
       </div>
+
+      {waitingForUnlock && (
+        <p
+          className="rounded-2xl px-4 py-3 text-center text-sm"
+          style={{
+            color: '#8878c4',
+            background: 'rgba(255,255,255,0.35)',
+            border: '1px solid rgba(180,160,240,0.25)',
+          }}
+        >
+          Las preguntas de hoy llegan a las {QUESTION_UNLOCK_HOUR}:00 AM
+        </p>
+      )}
 
       {/* Question card for the selected category */}
       <QuestionCard

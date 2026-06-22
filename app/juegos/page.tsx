@@ -2,7 +2,6 @@ import { createClient } from '@/lib/supabase-server'
 import PageTransition from '@/components/PageTransition'
 import GamesShell from '@/components/GamesShell'
 import { type Answer } from '@/components/QuestionCard'
-import { getTodayQuestionIndex } from '@/lib/utils'
 
 export const dynamic = 'force-dynamic'
 
@@ -27,7 +26,6 @@ export default async function JuegosPage() {
         .maybeSingle(),
     ])
 
-  const todayIndex = getTodayQuestionIndex(firstEntry?.created_at ?? null)
   const partner = (profiles ?? []).find((p) => p.id !== user?.id)
   const partnerName = partner?.name ?? 'tu amor'
 
@@ -49,7 +47,6 @@ export default async function JuegosPage() {
         <GamesShell
           currentUserId={user.id}
           partnerName={partnerName}
-          todayIndex={todayIndex}
           initialAnswers={(answers as Answer[]) ?? []}
           firstEntryDate={firstEntry?.created_at ?? null}
         />

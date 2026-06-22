@@ -65,7 +65,7 @@ Deno.serve(async (req) => {
 
     const notification = JSON.stringify({
       title: 'Cerca - Emmmi y Santi 💜',
-      body: '¡Hay una nueva pregunta esperándote hoy!',
+      body: '¡Ya están las preguntas de hoy en Conocernos y Crecer juntos!',
       url: '/juegos',
     })
 

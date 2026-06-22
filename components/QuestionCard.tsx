@@ -74,6 +74,11 @@ export default function QuestionCard({
     setViewIndex((i) => Math.min(todayIndex, i + 1))
   }
 
+  // Jump to today's question when it unlocks at 10 AM.
+  useEffect(() => {
+    setViewIndex(todayIndex)
+  }, [todayIndex])
+
   useEffect(() => {
     const channel = supabase
       .channel(`question-games-${indexOffset}`)
