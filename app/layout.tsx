@@ -6,6 +6,9 @@ import BottomNav from '@/components/BottomNav'
 import AppBackground from '@/components/AppBackground'
 import SessionKeeper from '@/components/SessionKeeper'
 import SwUpdate from '@/components/SwUpdate'
+import RouteProgress from '@/components/RouteProgress'
+import PageTransition from '@/components/PageTransition'
+import ChunkLoadRecovery from '@/components/ChunkLoadRecovery'
 
 const nunito = Nunito({
   subsets: ['latin'],
@@ -65,12 +68,14 @@ export default function RootLayout({
           </Script>
         )}
         <SwUpdate />
+        <ChunkLoadRecovery />
         <SessionKeeper />
+        <RouteProgress />
         <AppBackground />
 
         {/* Mobile-first centered container */}
         <div className="relative z-10 mx-auto flex min-h-[100dvh] w-full max-w-[390px] flex-col px-5 pb-28 pt-8">
-          {children}
+          <PageTransition>{children}</PageTransition>
         </div>
 
         <BottomNav />

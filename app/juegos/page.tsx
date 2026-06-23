@@ -1,36 +1,12 @@
-import { createClient } from '@/lib/supabase-server'
-import PageTransition from '@/components/PageTransition'
-import GamesShell from '@/components/GamesShell'
-import { type Answer } from '@/components/QuestionCard'
+import { Suspense } from 'react'
+import PageSkeleton from '@/components/PageSkeleton'
+import JuegosContent from './JuegosContent'
 
 export const dynamic = 'force-dynamic'
 
-export default async function JuegosPage() {
-  const supabase = createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  const [{ data: answers }, { data: profiles }, { data: firstEntry }] =
-    await Promise.all([
-      supabase
-        .from('question_games')
-        .select('id, question_index, author_id, answer, created_at')
-        .order('created_at', { ascending: true }),
-      supabase.from('profiles').select('id, name'),
-      supabase
-        .from('journal_entries')
-        .select('created_at')
-        .order('created_at', { ascending: true })
-        .limit(1)
-        .maybeSingle(),
-    ])
-
-  const partner = (profiles ?? []).find((p) => p.id !== user?.id)
-  const partnerName = partner?.name ?? 'tu amor'
-
+export default function JuegosPage() {
   return (
-    <PageTransition>
+    <>
       <header className="mt-2">
         <h1
           className="font-display leading-tight"
@@ -43,14 +19,9 @@ export default async function JuegosPage() {
         </p>
       </header>
 
-      {user && (
-        <GamesShell
-          currentUserId={user.id}
-          partnerName={partnerName}
-          initialAnswers={(answers as Answer[]) ?? []}
-          firstEntryDate={firstEntry?.created_at ?? null}
-        />
-      )}
-    </PageTransition>
+      <Suspense fallback={<PageSkeleton variant="cards" showHeader={false} />}>
+        <JuegosContent />
+      </Suspense>
+    </>
   )
 }

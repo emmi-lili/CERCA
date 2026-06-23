@@ -68,6 +68,40 @@ body {
   animation: cerca-pulse 2.5s ease-out infinite;
 }
 
+@keyframes cerca-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.28) 0%,
+    rgba(255, 255, 255, 0.55) 50%,
+    rgba(255, 255, 255, 0.28) 100%
+  );
+  background-size: 200% 100%;
+  animation: cerca-shimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes cerca-route-progress {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+.route-progress-bar {
+  background: linear-gradient(90deg, #8878c4, #5a47b0);
+  animation: cerca-route-progress 0.35s ease-out forwards;
+}
+
 textarea,
 input {
   font-family: inherit;
